@@ -91,3 +91,33 @@ for (j in 5:ncol(city_rank)) {
         }
     }
 }
+
+# Remove isolated duplicated cities.
+city_rank <- subset(city_rank, !duplicated(city_rank$city))
+
+
+#--------------Rank City Indexes--------------#
+
+# Read rds file and merge data, where applicable
+zipCode_url <- "https://github.com/shyambv/cuny_607_final_project/blob/master/superzip.rds?raw=true"
+
+zipCode_df <- readRDS(gzcon(url(zip_url)))
+
+zipCode_df[,13:14] <- NULL
+
+for (i in 1:nrow(zipCode_df)) {
+    city_tmp <- paste0(zipCode_df[i, "city.x"], ", ", zipCode_df[i, "state.x"])
+    if (city_tmp %in% city_rank$city) {
+        for (j in 5:ncol(city_rank)) {
+            zipCode_df[i, colnames(city_rank)[j]] <- city_rank[city_rank$city == city_tmp, j]
+        }
+    }
+}
+
+# Will only keep cities that we have index information for
+zipCode_df <- subset(zipCode_df, !is.na(cpi_index))
+
+#Save df as csv in working directory.
+write.table(zipCode_df, "cityData.csv", quote = FALSE, sep = ",", row.names = FALSE)
+
+#****END****#
